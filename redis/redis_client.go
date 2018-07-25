@@ -3,28 +3,26 @@ package redis
 import (
 	"errors"
 	"time"
-
-	"github.com/gomodule/redigo/redis"
 )
 
 type RedisClient struct {
-	pool *redis.Pool
+	pool *Pool
 }
 
 func GetRedisClient(addr, pass string) *RedisClient {
 	//logs.Debugf("The addr is %s", addr)
 	if addr != "" {
 		//logs.Debugf("The addr is %s, password is [%s]", addr, strings.Repeat("*", len(pass)))
-		var options []redis.DialOption
+		var options []DialOption
 		if pass != "" {
-			options = append(options, redis.DialPassword(pass))
+			options = append(options, DialPassword(pass))
 		}
-		pool := &redis.Pool{
+		pool := &Pool{
 			MaxIdle:   80,
 			MaxActive: 12000, // max number of connections
-			Dial: func() (redis.Conn, error) {
-				//c, err := redis.Dial("tcp", "redis-10616.c15.us-east-1-4.ec2.cloud.redislabs.com:10616", redis.DialPassword("NaQlEWBSz6ZQ8lXPJ329EUjZK12NvzaG"))
-				c, err := redis.Dial("tcp", addr, options...)
+			Dial: func() (Conn, error) {
+				//c, err := Dial("tcp", "redis-10616.c15.us-east-1-4.ec2.cloud.redislabs.com:10616", DialPassword("NaQlEWBSz6ZQ8lXPJ329EUjZK12NvzaG"))
+				c, err := Dial("tcp", addr, options...)
 				if err != nil {
 					panic(err.Error())
 				}
@@ -181,7 +179,7 @@ const (
 	ParamMaximum    = "+inf"
 )
 
-func (client *RedisClient) getConn() (redis.Conn, error) {
+func (client *RedisClient) getConn() (Conn, error) {
 	if client == nil {
 		//logs.Errorf("The client is nil")
 		return nil, ErrInternalError
@@ -200,7 +198,7 @@ func (client *RedisClient) Int64(commandName string, args ...interface{}) (int64
 	}
 	defer conn.Close()
 
-	return redis.Int64(conn.Do(commandName, args...))
+	return Int64(conn.Do(commandName, args...))
 }
 
 func (client *RedisClient) Float64(commandName string, args ...interface{}) (float64, error) {
@@ -210,7 +208,7 @@ func (client *RedisClient) Float64(commandName string, args ...interface{}) (flo
 	}
 	defer conn.Close()
 
-	return redis.Float64(conn.Do(commandName, args...))
+	return Float64(conn.Do(commandName, args...))
 }
 
 func (client *RedisClient) StringSlice(commandName string, args ...interface{}) ([]string, error) {
@@ -220,7 +218,7 @@ func (client *RedisClient) StringSlice(commandName string, args ...interface{}) 
 	}
 	defer conn.Close()
 
-	return redis.Strings(conn.Do(commandName, args...))
+	return Strings(conn.Do(commandName, args...))
 }
 
 func (client *RedisClient) StringSliceWithTimeout(timeout time.Duration, commandName string, args ...interface{}) ([]string, error) {
@@ -230,7 +228,7 @@ func (client *RedisClient) StringSliceWithTimeout(timeout time.Duration, command
 	}
 	defer conn.Close()
 
-	return redis.Strings(redis.DoWithTimeout(conn, timeout, commandName, args...))
+	return Strings(DoWithTimeout(conn, timeout, commandName, args...))
 }
 
 func (client *RedisClient) StringMap(commandName string, args ...interface{}) (map[string]string, error) {
@@ -240,7 +238,7 @@ func (client *RedisClient) StringMap(commandName string, args ...interface{}) (m
 	}
 	defer conn.Close()
 
-	return redis.StringMap(conn.Do(commandName, args...))
+	return StringMap(conn.Do(commandName, args...))
 }
 
 func (client *RedisClient) Bool(commandName string, args ...interface{}) (bool, error) {
@@ -250,7 +248,7 @@ func (client *RedisClient) Bool(commandName string, args ...interface{}) (bool, 
 	}
 	defer conn.Close()
 
-	return redis.Bool(conn.Do(commandName, args...))
+	return Bool(conn.Do(commandName, args...))
 }
 
 func (client *RedisClient) String(commandName string, args ...interface{}) (string, error) {
@@ -260,7 +258,7 @@ func (client *RedisClient) String(commandName string, args ...interface{}) (stri
 	}
 	defer conn.Close()
 
-	return redis.String(conn.Do(commandName, args...))
+	return String(conn.Do(commandName, args...))
 }
 
 func (client *RedisClient) StringWithTimeout(timeout time.Duration, commandName string, args ...interface{}) (string, error) {
@@ -270,7 +268,7 @@ func (client *RedisClient) StringWithTimeout(timeout time.Duration, commandName 
 	}
 	defer conn.Close()
 
-	return redis.String(redis.DoWithTimeout(conn, timeout, commandName, args...))
+	return String(DoWithTimeout(conn, timeout, commandName, args...))
 }
 
 func (client *RedisClient) Values(commandName string, args ...interface{}) ([]interface{}, error) {
@@ -280,7 +278,7 @@ func (client *RedisClient) Values(commandName string, args ...interface{}) ([]in
 	}
 	defer conn.Close()
 
-	return redis.Values(conn.Do(commandName, args...))
+	return Values(conn.Do(commandName, args...))
 }
 
 func usePrecise(dur time.Duration) bool {
@@ -614,7 +612,7 @@ func (client *RedisClient) HGetAllToStruct(dest interface{}, key string) error {
 		//logs.Errorf("Failed to get values, the error is %#v", err)
 		return err
 	}
-	return redis.ScanStruct(values, dest)
+	return ScanStruct(values, dest)
 }
 
 func (client *RedisClient) HIncrBy(key, field string, incr int64) (int64, error) {
@@ -651,7 +649,7 @@ func (client *RedisClient) HMGetToStruct(dest interface{}, key string, fields ..
 		//logs.Errorf("Failed to get values, the error is %#v", err)
 		return err
 	}
-	return redis.ScanStruct(values, dest)
+	return ScanStruct(values, dest)
 }
 
 func (client *RedisClient) HMSet(key string, fields map[string]interface{}) (string, error) {
@@ -663,7 +661,7 @@ func (client *RedisClient) HMSet(key string, fields map[string]interface{}) (str
 }
 
 func (client *RedisClient) HMSetObject(key string, object interface{}) (string, error) {
-	return client.String(HMSet, redis.Args{key}.AddFlat(object)...)
+	return client.String(HMSet, Args{key}.AddFlat(object)...)
 }
 
 func (client *RedisClient) HSet(key, field string, value interface{}) (bool, error) {
@@ -1228,7 +1226,7 @@ func (client RedisClient) DecrBy(key string, decrement int64) (int64, error) {
 	return client.Int64(CmdDecrBy, key, decrement)
 }
 
-// Redis `GET key` command. It returns redis.Nil error when key does not exist.
+// Redis `GET key` command. It returns Nil error when key does not exist.
 func (client RedisClient) Get(key string) (string, error) {
 	return client.String(CmdGet, key)
 }

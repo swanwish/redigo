@@ -3,8 +3,6 @@ package redis
 import (
 	"fmt"
 	"testing"
-
-	"github.com/gomodule/redigo/redis"
 )
 
 const (
@@ -168,8 +166,8 @@ func TestFVRedisClient_HGet(t *testing.T) {
 	}
 
 	value, err = client.HGet(key, FieldName2)
-	if err != redis.ErrNil {
-		t.Errorf("Failed to get %s, the error is %#v, redis.ErrNil is expected", key, err)
+	if err != ErrNil {
+		t.Errorf("Failed to get %s, the error is %#v, ErrNil is expected", key, err)
 	}
 
 	client.Del(key)
@@ -732,7 +730,7 @@ func TestRedisClient_LIndex(t *testing.T) {
 	}
 
 	item, err = client.LIndex(key, 3)
-	if err != redis.ErrNil {
+	if err != ErrNil {
 		t.Errorf("Failed to get %s, the error is %#v", key, err)
 	}
 
@@ -2953,7 +2951,7 @@ func TestFVRedisClient_ZIncrNX(t *testing.T) {
 	}
 
 	result, err = client.ZIncrNX(key, Z{1, "one"})
-	if err != redis.ErrNil {
+	if err != ErrNil {
 		t.Errorf("Failed to set %s, the error is %#v", key, err)
 	}
 
@@ -3000,7 +2998,7 @@ func TestFVRedisClient_ZIncrXX(t *testing.T) {
 	}
 
 	result, err = client.ZIncrXX(key, Z{1, "two"})
-	if err != redis.ErrNil {
+	if err != ErrNil {
 		t.Errorf("Failed to set %s, the error is %#v", key, err)
 	}
 
@@ -3588,7 +3586,7 @@ func TestFVRedisClient_ZRank(t *testing.T) {
 	}
 
 	rank, err = client.ZRank(key, "four")
-	if err != redis.ErrNil {
+	if err != ErrNil {
 		t.Errorf("The err %#v is not ErrNil", err)
 	}
 
@@ -4229,7 +4227,7 @@ func TestFVRedisClient_ZRevRank(t *testing.T) {
 	}
 
 	rank, err = client.ZRank(key, "four")
-	if err != redis.ErrNil {
+	if err != ErrNil {
 		t.Errorf("The err %#v is not ErrNil", err)
 	}
 
@@ -4567,7 +4565,7 @@ func TestRedisClient_Get(t *testing.T) {
 	}
 
 	_, err = client.Get(key2)
-	if err != redis.ErrNil {
+	if err != ErrNil {
 		t.Errorf("The result is not correct, the err is not ErrNil")
 	}
 
@@ -5174,7 +5172,7 @@ func TestRedisClient_SetXX(t *testing.T) {
 	}
 
 	_, err = client.SetXX(key2, "World", 0)
-	if err != redis.ErrNil {
+	if err != ErrNil {
 		t.Errorf("Failed to set value, the error is %#v", err)
 	}
 

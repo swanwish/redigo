@@ -17,8 +17,6 @@ package redis_test
 import (
 	"testing"
 	"time"
-
-	"github.com/gomodule/redigo/redis"
 )
 
 type timeoutTestConn int
@@ -42,12 +40,12 @@ func (tc timeoutTestConn) Err() error                        { return nil }
 func (tc timeoutTestConn) Close() error                      { return nil }
 func (tc timeoutTestConn) Flush() error                      { return nil }
 
-func testTimeout(t *testing.T, c redis.Conn) {
+func testTimeout(t *testing.T, c Conn) {
 	r, err := c.Do("PING")
 	if r != time.Duration(-1) || err != nil {
 		t.Errorf("Do() = %v, %v, want %v, %v", r, err, time.Duration(-1), nil)
 	}
-	r, err = redis.DoWithTimeout(c, time.Minute, "PING")
+	r, err = DoWithTimeout(c, time.Minute, "PING")
 	if r != time.Minute || err != nil {
 		t.Errorf("DoWithTimeout() = %v, %v, want %v, %v", r, err, time.Minute, nil)
 	}
@@ -55,7 +53,7 @@ func testTimeout(t *testing.T, c redis.Conn) {
 	if r != time.Duration(-1) || err != nil {
 		t.Errorf("Receive() = %v, %v, want %v, %v", r, err, time.Duration(-1), nil)
 	}
-	r, err = redis.ReceiveWithTimeout(c, time.Minute)
+	r, err = ReceiveWithTimeout(c, time.Minute)
 	if r != time.Minute || err != nil {
 		t.Errorf("ReceiveWithTimeout() = %v, %v, want %v, %v", r, err, time.Minute, nil)
 	}
@@ -66,6 +64,6 @@ func TestConnTimeout(t *testing.T) {
 }
 
 func TestPoolConnTimeout(t *testing.T) {
-	p := &redis.Pool{Dial: func() (redis.Conn, error) { return timeoutTestConn(0), nil }}
+	p := &Pool{Dial: func() (Conn, error) { return timeoutTestConn(0), nil }}
 	testTimeout(t, p.Get())
 }
