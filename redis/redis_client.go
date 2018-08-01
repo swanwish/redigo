@@ -612,6 +612,9 @@ func (client *RedisClient) HGetAllToStruct(dest interface{}, key string) error {
 		//logs.Errorf("Failed to get values, the error is %#v", err)
 		return err
 	}
+	if len(values) == 0 {
+		return ErrNil
+	}
 	return ScanStruct(values, dest)
 }
 
