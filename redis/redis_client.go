@@ -156,6 +156,7 @@ const (
 	CmdRandomKey = "RANDOMKEY"
 	CmdRename    = "RENAME"
 	CmdRenameNX  = "RENAMENX"
+	CmdKeys      = "KEYS"
 )
 
 const (
@@ -351,12 +352,11 @@ func (client *RedisClient) Exists(keys ...string) (int64, error) {
 //	c.process(cmd)
 //	return cmd
 //}
-//
-//func (client *RedisClient) Keys(pattern string) ([]string, error) {
-//	cmd := NewStringSliceCmd("keys", pattern)
-//	c.process(cmd)
-//	return cmd
-//}
+
+func (client *RedisClient) Keys(pattern string) ([]string, error) {
+	return client.StringSlice(CmdKeys, pattern)
+}
+
 //
 //func (client *RedisClient) Migrate(host, port, key string, db int64, timeout time.Duration) *StatusCmd {
 //	cmd := NewStatusCmd(
