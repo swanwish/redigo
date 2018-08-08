@@ -162,6 +162,8 @@ const (
 	CmdPersist   = "PERSIST"
 	CmdPExpire   = "PEXPIRE"
 	CmdPExpireAt = "PEXPIREAT"
+	CmdPttl      = "PTTL"
+	CmdTtl       = "TTL"
 )
 
 const (
@@ -413,11 +415,9 @@ func (client *RedisClient) PExpireAt(key string, tm time.Time) (bool, error) {
 	return client.Bool(CmdPExpireAt, args...)
 }
 
-//func (client *RedisClient) PTTL(key string) *DurationCmd {
-//	cmd := NewDurationCmd(time.Millisecond, "pttl", key)
-//	c.process(cmd)
-//	return cmd
-//}
+func (client *RedisClient) PTTL(key string) (int64, error) {
+	return client.Int64(CmdPttl, key)
+}
 
 func (client *RedisClient) RandomKey() (string, error) {
 	return client.String(CmdRandomKey)
@@ -514,13 +514,11 @@ func (client *RedisClient) RenameNX(key, newkey string) (bool, error) {
 //	c.process(cmd)
 //	return cmd
 //}
-//
-//func (client *RedisClient) TTL(key string) *DurationCmd {
-//	cmd := NewDurationCmd(time.Second, "ttl", key)
-//	c.process(cmd)
-//	return cmd
-//}
-//
+
+func (client *RedisClient) TTL(key string) (int64, error) {
+	return client.Int64(CmdTtl, key)
+}
+
 //func (client *RedisClient) Type(key string) *StatusCmd {
 //	cmd := NewStatusCmd("type", key)
 //	c.process(cmd)
