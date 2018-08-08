@@ -3,6 +3,7 @@ package redis
 import (
 	"fmt"
 	"testing"
+	"time"
 )
 
 const (
@@ -5220,4 +5221,41 @@ func TestRedisClient_StrLen(t *testing.T) {
 	}
 
 	client.Del(key, key2)
+}
+
+//redis> SET mykey "Hello"
+//"OK"
+//redis> EXPIRE mykey 10
+//(integer) 1
+//redis> TTL mykey
+//(integer) 10
+//redis>
+func TestRedisClient_TTL(t *testing.T) {
+	client := getClient()
+	key := "tk_ttlkey"
+	result, err := client.Set(key, "Hello", 0)
+	if err != nil {
+		t.Errorf("Set test key failed, the error is %#v", err)
+	}
+	if result != "OK" {
+		t.Errorf("Invalid set result %s, expected OK", result)
+	} else {
+		er, err := client.Expire(key, 10*time.Second)
+		if err != nil {
+			t.Errorf("Failed to set expiration, the error is %#v", err)
+		}
+		if er != 1 {
+			t.Errorf("Invalid result for set expiration, the result is not 1")
+		} else {
+			ttl, err := client.TTL(key)
+			if err != nil {
+				t.Errorf("Failed to get ttl, the error is %#v", err)
+				return
+			}
+			if ttl < 0 || ttl > 10 {
+				t.Errorf("Invalid ttl %d", ttl)
+			}
+		}
+	}
+	client.Del(key)
 }

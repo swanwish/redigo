@@ -348,14 +348,14 @@ func (client *RedisClient) Exists(keys ...string) (int64, error) {
 	return client.Int64(CmdExists, args...)
 }
 
-func (client *RedisClient) Expire(key string, expiration time.Duration) (bool, error) {
+func (client *RedisClient) Expire(key string, expiration time.Duration) (int64, error) {
 	args := []interface{}{key, formatSec(expiration)}
-	return client.Bool(CmdExpire, args...)
+	return client.Int64(CmdExpire, args...)
 }
 
-func (client *RedisClient) ExpireAt(key string, tm time.Time) (bool, error) {
+func (client *RedisClient) ExpireAt(key string, tm time.Time) (int64, error) {
 	args := []interface{}{key, tm.Unix()}
-	return client.Bool(CmdExpireAt, args...)
+	return client.Int64(CmdExpireAt, args...)
 }
 
 func (client *RedisClient) Keys(pattern string) ([]string, error) {
@@ -401,18 +401,18 @@ func (client *RedisClient) Keys(pattern string) ([]string, error) {
 //	return cmd
 //}
 
-func (client *RedisClient) Persist(key string) (bool, error) {
-	return client.Bool(CmdPersist, key)
+func (client *RedisClient) Persist(key string) (int64, error) {
+	return client.Int64(CmdPersist, key)
 }
 
-func (client *RedisClient) PExpire(key string, expiration time.Duration) (bool, error) {
+func (client *RedisClient) PExpire(key string, expiration time.Duration) (int64, error) {
 	args := []interface{}{key, formatMs(expiration)}
-	return client.Bool(CmdPExpire, args...)
+	return client.Int64(CmdPExpire, args...)
 }
 
-func (client *RedisClient) PExpireAt(key string, tm time.Time) (bool, error) {
+func (client *RedisClient) PExpireAt(key string, tm time.Time) (int64, error) {
 	args := []interface{}{key, tm.UnixNano() / int64(time.Millisecond)}
-	return client.Bool(CmdPExpireAt, args...)
+	return client.Int64(CmdPExpireAt, args...)
 }
 
 func (client *RedisClient) PTTL(key string) (int64, error) {
