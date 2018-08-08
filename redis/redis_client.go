@@ -153,10 +153,15 @@ const (
 const (
 	CmdDel       = "DEL"
 	CmdExists    = "EXISTS"
+	CmdExpire    = "EXPIRE"
+	CmdExpireAt  = "EXPIREAT"
 	CmdRandomKey = "RANDOMKEY"
 	CmdRename    = "RENAME"
 	CmdRenameNX  = "RENAMENX"
 	CmdKeys      = "KEYS"
+	CmdPersist   = "PERSIST"
+	CmdPExpire   = "PEXPIRE"
+	CmdPExpireAt = "PEXPIREAT"
 )
 
 const (
@@ -341,17 +346,15 @@ func (client *RedisClient) Exists(keys ...string) (int64, error) {
 	return client.Int64(CmdExists, args...)
 }
 
-//func (client *RedisClient) Expire(key string, expiration time.Duration) (bool, error) {
-//	cmd := NewBoolCmd("expire", key, formatSec(expiration))
-//	c.process(cmd)
-//	return cmd
-//}
-//
-//func (client *RedisClient) ExpireAt(key string, tm time.Time) (bool, error) {
-//	cmd := NewBoolCmd("expireat", key, tm.Unix())
-//	c.process(cmd)
-//	return cmd
-//}
+func (client *RedisClient) Expire(key string, expiration time.Duration) (bool, error) {
+	args := []interface{}{key, formatSec(expiration)}
+	return client.Bool(CmdExpire, args...)
+}
+
+func (client *RedisClient) ExpireAt(key string, tm time.Time) (bool, error) {
+	args := []interface{}{key, tm.Unix()}
+	return client.Bool(CmdExpireAt, args...)
+}
 
 func (client *RedisClient) Keys(pattern string) ([]string, error) {
 	return client.StringSlice(CmdKeys, pattern)
@@ -395,29 +398,21 @@ func (client *RedisClient) Keys(pattern string) ([]string, error) {
 //	c.process(cmd)
 //	return cmd
 //}
-//
-//func (client *RedisClient) Persist(key string) (bool, error) {
-//	cmd := NewBoolCmd("persist", key)
-//	c.process(cmd)
-//	return cmd
-//}
-//
-//func (client *RedisClient) PExpire(key string, expiration time.Duration) (bool, error) {
-//	cmd := NewBoolCmd("pexpire", key, formatMs(expiration))
-//	c.process(cmd)
-//	return cmd
-//}
-//
-//func (client *RedisClient) PExpireAt(key string, tm time.Time) (bool, error) {
-//	cmd := NewBoolCmd(
-//		"pexpireat",
-//		key,
-//		tm.UnixNano()/int64(time.Millisecond),
-//	)
-//	c.process(cmd)
-//	return cmd
-//}
-//
+
+func (client *RedisClient) Persist(key string) (bool, error) {
+	return client.Bool(CmdPersist, key)
+}
+
+func (client *RedisClient) PExpire(key string, expiration time.Duration) (bool, error) {
+	args := []interface{}{key, formatMs(expiration)}
+	return client.Bool(CmdPExpire, args...)
+}
+
+func (client *RedisClient) PExpireAt(key string, tm time.Time) (bool, error) {
+	args := []interface{}{key, tm.UnixNano() / int64(time.Millisecond)}
+	return client.Bool(CmdPExpireAt, args...)
+}
+
 //func (client *RedisClient) PTTL(key string) *DurationCmd {
 //	cmd := NewDurationCmd(time.Millisecond, "pttl", key)
 //	c.process(cmd)
