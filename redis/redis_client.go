@@ -164,6 +164,8 @@ const (
 	CmdPExpireAt = "PEXPIREAT"
 	CmdPttl      = "PTTL"
 	CmdTtl       = "TTL"
+	CmdType      = "TYPE"
+	CmdScan      = "SCAN"
 )
 
 const (
@@ -185,6 +187,8 @@ const (
 	ParamAfter      = "AFTER"
 	ParamMinimum    = "-inf"
 	ParamMaximum    = "+inf"
+	ParamMatch      = "MATCH"
+	ParamCount      = "COUNT"
 )
 
 func (client *RedisClient) getConn() (Conn, error) {
@@ -287,6 +291,16 @@ func (client *RedisClient) Values(commandName string, args ...interface{}) ([]in
 	defer conn.Close()
 
 	return Values(conn.Do(commandName, args...))
+}
+
+func (client *RedisClient) ScanValues(commandName string, args ...interface{}) (uint64, []string, error) {
+	conn, err := client.getConn()
+	if err != nil {
+		return 0, nil, err
+	}
+	defer conn.Close()
+
+	return ReadScanResult(conn.Do(commandName, args...))
 }
 
 func usePrecise(dur time.Duration) bool {
@@ -519,25 +533,21 @@ func (client *RedisClient) TTL(key string) (int64, error) {
 	return client.Int64(CmdTtl, key)
 }
 
-//func (client *RedisClient) Type(key string) *StatusCmd {
-//	cmd := NewStatusCmd("type", key)
-//	c.process(cmd)
-//	return cmd
-//}
-//
-//func (client *RedisClient) Scan(cursor uint64, match string, count int64) *ScanCmd {
-//	args := []interface{}{"scan", cursor}
-//	if match != "" {
-//		args = append(args, "match", match)
-//	}
-//	if count > 0 {
-//		args = append(args, "count", count)
-//	}
-//	cmd := NewScanCmd(c.process, args...)
-//	c.process(cmd)
-//	return cmd
-//}
-//
+func (client *RedisClient) Type(key string) (string, error) {
+	return client.String(CmdType, key)
+}
+
+func (client *RedisClient) Scan(cursor uint64, match string, count int64) (uint64, []string, error) {
+	args := []interface{}{cursor}
+	if match != "" {
+		args = append(args, ParamMatch, match)
+	}
+	if count > 0 {
+		args = append(args, ParamCount, count)
+	}
+	return client.ScanValues(CmdScan, args...)
+}
+
 //func (client *RedisClient) SScan(key string, cursor uint64, match string, count int64) *ScanCmd {
 //	args := []interface{}{"sscan", key, cursor}
 //	if match != "" {

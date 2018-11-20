@@ -22,6 +22,7 @@ import (
 
 // ErrNil indicates that a reply value is nil.
 var ErrNil = errors.New("redigo: nil returned")
+var ErrInvalidReply = errors.New("redigo: invalid reply")
 
 // Int is a helper that converts a command reply to an integer. If err is not
 // equal to nil, then Int returns 0, err. Otherwise, Int converts the
@@ -241,6 +242,29 @@ func Values(reply interface{}, err error) ([]interface{}, error) {
 		return nil, reply
 	}
 	return nil, fmt.Errorf("redigo: unexpected type for Values, got type %T", reply)
+}
+
+func ReadScanResult(reply interface{}, err error) (uint64, []string, error) {
+	if err != nil {
+		return 0, nil, err
+	}
+	switch reply := reply.(type) {
+	case []interface{}:
+		if len(reply) == 2 {
+			cursor, err := Uint64(reply[0], nil)
+			if err != nil {
+				return cursor, nil, err
+			}
+			list, err := Strings(reply[1], nil)
+			return cursor, list, err
+		}
+		return 0, nil, ErrInvalidReply
+	case nil:
+		return 0, nil, ErrNil
+	case Error:
+		return 0, nil, reply
+	}
+	return 0, nil, ErrInvalidReply
 }
 
 func sliceHelper(reply interface{}, err error, name string, makeSlice func(int), assign func(int, interface{}) error) error {

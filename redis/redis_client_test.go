@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -5258,4 +5260,43 @@ func TestRedisClient_TTL(t *testing.T) {
 		}
 	}
 	client.Del(key)
+}
+
+func TestRedisClient_Scan(t *testing.T) {
+	client := getClient()
+	var (
+		cursor uint64 = 0
+		list   []string
+		err    error
+	)
+	for {
+		cursor, list, err = client.Scan(cursor, "*", 0)
+		if err != nil {
+			//logs.Errorf("Failed to scan from redis, the error is %#v", err)
+			assert.Fail(t, "Scan failed")
+			return
+		}
+		if cursor == 0 {
+			break
+		}
+		fmt.Printf("The cursor is %d", cursor)
+		for _, key := range list {
+			//logs.Debugf("The item is %s", key)
+			fmt.Printf("The key is %s", key)
+		}
+	}
+}
+
+func TestRedisClient_Type(t *testing.T) {
+	client := getClient()
+	testings := []struct {
+		key    string
+		result string
+		err    error
+	}{{"system.sh.610", "hash", nil}}
+	for _, test := range testings {
+		result, err := client.Type(test.key)
+		assert.Equal(t, test.result, result)
+		assert.Equal(t, test.err, err)
+	}
 }
