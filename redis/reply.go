@@ -418,6 +418,29 @@ func StringMap(result interface{}, err error) (map[string]string, error) {
 	return m, nil
 }
 
+func ZItemList(result interface{}, err error) ([]ZItem, error) {
+	values, err := Values(result, err)
+	if err != nil {
+		return nil, err
+	}
+	if len(values)%2 != 0 {
+		return nil, errors.New("redigo: ZItemList expects even number of values result")
+	}
+	list := make([]ZItem, 0)
+	for i := 0; i < len(values); i += 2 {
+		member, err := String(values[i], nil)
+		if err != nil {
+			return nil, errors.New("redigo: ZItemList failed to get member as string")
+		}
+		score, err := Float64(values[i+1], nil)
+		if err != nil {
+			return nil, errors.New("redigo: ZItemList failed to parse score as float64")
+		}
+		list = append(list, ZItem{Member: member, Score: score})
+	}
+	return list, nil
+}
+
 // IntMap is a helper that converts an array of strings (alternating key, value)
 // into a map[string]int. The HGETALL commands return replies in this format.
 // Requires an even number of values in result.

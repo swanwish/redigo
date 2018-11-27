@@ -203,104 +203,68 @@ func (client *RedisClient) getConn() (Conn, error) {
 	return client.pool.Get(), nil
 }
 
-func (client *RedisClient) Int64(commandName string, args ...interface{}) (int64, error) {
+func (client *RedisClient) Do(commandName string, args ...interface{}) (reply interface{}, err error) {
 	conn, err := client.getConn()
 	if err != nil {
 		return 0, err
 	}
 	defer conn.Close()
 
-	return Int64(conn.Do(commandName, args...))
+	return conn.Do(commandName, args...)
+}
+
+func (client *RedisClient) DoWithTimeout(timeout time.Duration, cmd string, args ...interface{}) (interface{}, error) {
+	conn, err := client.getConn()
+	if err != nil {
+		return 0, err
+	}
+	defer conn.Close()
+
+	return DoWithTimeout(conn, timeout, cmd, args...)
+}
+
+func (client *RedisClient) Int64(commandName string, args ...interface{}) (int64, error) {
+	return Int64(client.Do(commandName, args...))
 }
 
 func (client *RedisClient) Float64(commandName string, args ...interface{}) (float64, error) {
-	conn, err := client.getConn()
-	if err != nil {
-		return 0, err
-	}
-	defer conn.Close()
-
-	return Float64(conn.Do(commandName, args...))
+	return Float64(client.Do(commandName, args...))
 }
 
 func (client *RedisClient) StringSlice(commandName string, args ...interface{}) ([]string, error) {
-	conn, err := client.getConn()
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Close()
-
-	return Strings(conn.Do(commandName, args...))
+	return Strings(client.Do(commandName, args...))
 }
 
 func (client *RedisClient) StringSliceWithTimeout(timeout time.Duration, commandName string, args ...interface{}) ([]string, error) {
-	conn, err := client.getConn()
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Close()
-
-	return Strings(DoWithTimeout(conn, timeout, commandName, args...))
+	return Strings(client.DoWithTimeout(timeout, commandName, args...))
 }
 
 func (client *RedisClient) StringMap(commandName string, args ...interface{}) (map[string]string, error) {
-	conn, err := client.getConn()
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Close()
+	return StringMap(client.Do(commandName, args...))
+}
 
-	return StringMap(conn.Do(commandName, args...))
+func (client *RedisClient) ZItemList(commandName string, args ...interface{}) ([]ZItem, error) {
+	return ZItemList(client.Do(commandName, args...))
 }
 
 func (client *RedisClient) Bool(commandName string, args ...interface{}) (bool, error) {
-	conn, err := client.getConn()
-	if err != nil {
-		return false, err
-	}
-	defer conn.Close()
-
-	return Bool(conn.Do(commandName, args...))
+	return Bool(client.Do(commandName, args...))
 }
 
 func (client *RedisClient) String(commandName string, args ...interface{}) (string, error) {
-	conn, err := client.getConn()
-	if err != nil {
-		return "", err
-	}
-	defer conn.Close()
-
-	return String(conn.Do(commandName, args...))
+	return String(client.Do(commandName, args...))
 }
 
 func (client *RedisClient) StringWithTimeout(timeout time.Duration, commandName string, args ...interface{}) (string, error) {
-	conn, err := client.getConn()
-	if err != nil {
-		return "", err
-	}
-	defer conn.Close()
-
-	return String(DoWithTimeout(conn, timeout, commandName, args...))
+	return String(client.DoWithTimeout(timeout, commandName, args...))
 }
 
 func (client *RedisClient) Values(commandName string, args ...interface{}) ([]interface{}, error) {
-	conn, err := client.getConn()
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Close()
-
-	return Values(conn.Do(commandName, args...))
+	return Values(client.Do(commandName, args...))
 }
 
 func (client *RedisClient) ScanValues(commandName string, args ...interface{}) (uint64, []string, error) {
-	conn, err := client.getConn()
-	if err != nil {
-		return 0, nil, err
-	}
-	defer conn.Close()
-
-	return ReadScanResult(conn.Do(commandName, args...))
+	return ReadScanResult(client.Do(commandName, args...))
 }
 
 func usePrecise(dur time.Duration) bool {
@@ -902,6 +866,11 @@ type ZStore struct {
 	Aggregate string
 }
 
+type ZItem struct {
+	Member string
+	Score  float64
+}
+
 func (client *RedisClient) zAdd(zcmd string, args []interface{}, members ...Z) (int64, error) {
 	for _, member := range members {
 		args = append(args, member.Score, member.Member)
@@ -1008,27 +977,32 @@ func (client *RedisClient) ZInterStore(destination string, store ZStore, keys ..
 	return client.Int64(ZInterStore, args...)
 }
 
-// TODO when withScores, the return data should not be StringSlice
-func (client *RedisClient) zRange(key string, start, stop int64, withScores bool) ([]string, error) {
+func (client *RedisClient) zRange(key string, start, stop int64) ([]string, error) {
 	args := []interface{}{
 		key,
 		start,
 		stop,
 	}
-	if withScores {
-		args = append(args, ParamWithScores)
-	}
 	return client.StringSlice(ZRange, args...)
 }
 
-func (client *RedisClient) ZRange(key string, start, stop int64) ([]string, error) {
-	return client.zRange(key, start, stop, false)
+func (client *RedisClient) zRangeWithScore(key string, start, stop int64) ([]ZItem, error) {
+	args := []interface{}{
+		key,
+		start,
+		stop,
+	}
+	args = append(args, ParamWithScores)
+	return client.ZItemList(ZRange, args...)
 }
 
-// TODO should I use string map or int map
-func (client *RedisClient) ZRangeWithScores(key string, start, stop int64) (map[string]string, error) {
+func (client *RedisClient) ZRange(key string, start, stop int64) ([]string, error) {
+	return client.zRange(key, start, stop)
+}
+
+func (client *RedisClient) ZRangeWithScores(key string, start, stop int64) ([]ZItem, error) {
 	args := []interface{}{key, start, stop, ParamWithScores}
-	return client.StringMap(ZRange, args...)
+	return client.ZItemList(ZRange, args...)
 }
 
 type ZRangeBy struct {
@@ -1036,27 +1010,32 @@ type ZRangeBy struct {
 	Offset, Count int64
 }
 
-func (client *RedisClient) zRangeBy(zcmd, key string, opt ZRangeBy, withScores bool) ([]string, error) {
+func (client *RedisClient) zRangeBy(zcmd, key string, opt ZRangeBy) ([]string, error) {
 	args := []interface{}{key, opt.Min, opt.Max}
-	if withScores {
-		args = append(args, ParamWithScores)
-	}
 	if opt.Offset != 0 || opt.Count != 0 {
 		args = append(args, ParamLimit, opt.Offset, opt.Count)
 	}
 	return client.StringSlice(zcmd, args...)
 }
 
+func (client *RedisClient) zRangeByWithScore(zcmd, key string, opt ZRangeBy) ([]ZItem, error) {
+	args := []interface{}{key, opt.Min, opt.Max}
+	args = append(args, ParamWithScores)
+	if opt.Offset != 0 || opt.Count != 0 {
+		args = append(args, ParamLimit, opt.Offset, opt.Count)
+	}
+	return client.ZItemList(zcmd, args...)
+}
+
 func (client *RedisClient) ZRangeByScore(key string, opt ZRangeBy) ([]string, error) {
-	return client.zRangeBy(ZRangeByScore, key, opt, false)
+	return client.zRangeBy(ZRangeByScore, key, opt)
 }
 
 func (client *RedisClient) ZRangeByLex(key string, opt ZRangeBy) ([]string, error) {
-	return client.zRangeBy(ZRangeByLex, key, opt, false)
+	return client.zRangeBy(ZRangeByLex, key, opt)
 }
 
-// TODO should I use string map or int map
-func (client *RedisClient) ZRangeByScoreWithScores(key string, opt ZRangeBy) (map[string]string, error) {
+func (client *RedisClient) ZRangeByScoreWithScores(key string, opt ZRangeBy) ([]ZItem, error) {
 	args := []interface{}{key, opt.Min, opt.Max, "withscores"}
 	if opt.Offset != 0 || opt.Count != 0 {
 		args = append(
@@ -1066,7 +1045,7 @@ func (client *RedisClient) ZRangeByScoreWithScores(key string, opt ZRangeBy) (ma
 			opt.Count,
 		)
 	}
-	return client.StringMap(ZRangeByScore, args...)
+	return client.ZItemList(ZRangeByScore, args...)
 }
 
 func (client *RedisClient) ZRank(key, member string) (int64, error) {
@@ -1102,10 +1081,9 @@ func (client *RedisClient) ZRevRange(key string, start, stop int64) ([]string, e
 	return client.StringSlice(ZRevRange, args...)
 }
 
-// TODO should I use string map or int map
-func (client *RedisClient) ZRevRangeWithScores(key string, start, stop int64) (map[string]string, error) {
+func (client *RedisClient) ZRevRangeWithScores(key string, start, stop int64) ([]ZItem, error) {
 	args := []interface{}{key, start, stop, ParamWithScores}
-	return client.StringMap(ZRevRange, args...)
+	return client.ZItemList(ZRevRange, args...)
 }
 
 func (client *RedisClient) zRevRangeBy(zcmd, key string, opt ZRangeBy) ([]string, error) {
@@ -1124,7 +1102,7 @@ func (client *RedisClient) ZRevRangeByScore(key string, opt ZRangeBy) ([]string,
 	return client.zRevRangeBy(ZRevRangeByScore, key, opt)
 }
 
-func (client *RedisClient) ZRevRangeByScoreWithScores(key string, opt ZRangeBy) (map[string]string, error) {
+func (client *RedisClient) ZRevRangeByScoreWithScores(key string, opt ZRangeBy) ([]ZItem, error) {
 	args := []interface{}{key, opt.Max, opt.Min, ParamWithScores}
 	if opt.Offset != 0 || opt.Count != 0 {
 		args = append(
@@ -1134,7 +1112,7 @@ func (client *RedisClient) ZRevRangeByScoreWithScores(key string, opt ZRangeBy) 
 			opt.Count,
 		)
 	}
-	return client.StringMap(ZRevRangeByScore, args...)
+	return client.ZItemList(ZRevRangeByScore, args...)
 }
 
 func (client *RedisClient) ZRevRank(key, member string) (int64, error) {

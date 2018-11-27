@@ -2523,8 +2523,8 @@ func TestFVRedisClient_ZAdd(t *testing.T) {
 	if len(members) != 4 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -2583,8 +2583,8 @@ func TestFVRedisClient_ZAddCh(t *testing.T) {
 	if len(members) != 4 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -2634,8 +2634,8 @@ func TestFVRedisClient_ZAddNX(t *testing.T) {
 	if len(members) != 4 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -2685,8 +2685,8 @@ func TestFVRedisClient_ZAddNXCh(t *testing.T) {
 	if len(members) != 4 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -2736,8 +2736,8 @@ func TestFVRedisClient_ZAddXX(t *testing.T) {
 	if len(members) != 1 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -2787,8 +2787,8 @@ func TestFVRedisClient_ZAddXXCh(t *testing.T) {
 	if len(members) != 1 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -2918,8 +2918,8 @@ func TestFVRedisClient_ZIncr(t *testing.T) {
 	if len(members) != 1 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -2965,8 +2965,8 @@ func TestFVRedisClient_ZIncrNX(t *testing.T) {
 	if len(members) != 2 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -3012,8 +3012,8 @@ func TestFVRedisClient_ZIncrXX(t *testing.T) {
 	if len(members) != 1 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -3061,8 +3061,8 @@ func TestFVRedisClient_ZIncrBy(t *testing.T) {
 	if len(members) != 2 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -3149,8 +3149,8 @@ func TestFVRedisClient_ZInterStore(t *testing.T) {
 	if len(members) != 2 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -3218,8 +3218,8 @@ func TestFVRedisClient_ZLexCount(t *testing.T) {
 	if len(members) != 7 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -3289,8 +3289,8 @@ func TestFVRedisClient_ZRange(t *testing.T) {
 	if len(members) != 2 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -3356,8 +3356,8 @@ func TestFVRedisClient_ZRangeByLex(t *testing.T) {
 	if len(members) != 7 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -3438,8 +3438,8 @@ func TestFVRedisClient_ZRangeByScore(t *testing.T) {
 	if len(members) != 2 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -3488,8 +3488,8 @@ func TestFVRedisClient_ZRangeByScoreWithScores(t *testing.T) {
 	} else if len(members) != 3 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -3538,8 +3538,8 @@ func TestFVRedisClient_ZRangeWithScores(t *testing.T) {
 	} else if len(members) != 3 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -3645,8 +3645,8 @@ func TestFVRedisClient_ZRem(t *testing.T) {
 	if len(members) != 2 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -3722,8 +3722,8 @@ func TestFVRedisClient_ZRemRangeByLex(t *testing.T) {
 	if len(members) != 4 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -3779,8 +3779,8 @@ func TestFVRedisClient_ZRemRangeByRank(t *testing.T) {
 	if len(members) != 1 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -3836,8 +3836,8 @@ func TestFVRedisClient_ZRemRangeByScore(t *testing.T) {
 	if len(members) != 2 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -3907,8 +3907,8 @@ func TestFVRedisClient_ZRevRange(t *testing.T) {
 	if len(members) != 3 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -3974,8 +3974,8 @@ func TestFVRedisClient_ZRevRangeByLex(t *testing.T) {
 	if len(members) != 7 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -4094,8 +4094,8 @@ func TestFVRedisClient_ZRevRangeByScoreWithScores(t *testing.T) {
 	} else if len(members) != 3 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -4106,8 +4106,8 @@ func TestFVRedisClient_ZRevRangeByScoreWithScores(t *testing.T) {
 	} else if len(members) != 2 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -4118,8 +4118,8 @@ func TestFVRedisClient_ZRevRangeByScoreWithScores(t *testing.T) {
 	} else if len(members) != 1 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -4130,8 +4130,8 @@ func TestFVRedisClient_ZRevRangeByScoreWithScores(t *testing.T) {
 	} else if len(members) != 0 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -4179,8 +4179,8 @@ func TestFVRedisClient_ZRevRangeWithScores(t *testing.T) {
 	} else if len(members) != 3 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
@@ -4346,8 +4346,8 @@ func TestFVRedisClient_ZUnionStore(t *testing.T) {
 	if len(members) != 3 {
 		t.Errorf("The member length is not correct, the length is %d and members is %#v", len(members), members)
 	} else {
-		for k, v := range members {
-			fmt.Printf("The key is %s, value is %s", k, v)
+		for _, item := range members {
+			fmt.Printf("The key is %s, value is %f", item.Member, item.Score)
 		}
 	}
 
