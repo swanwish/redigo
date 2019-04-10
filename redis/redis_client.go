@@ -1331,3 +1331,7 @@ func (client RedisClient) SetRange(key string, offset int64, value string) (int6
 func (client RedisClient) StrLen(key string) (int64, error) {
 	return client.Int64(CmdStrLen, key)
 }
+
+func (client RedisClient) ActiveCount() int {
+	return client.pool.ActiveCount()
+}
