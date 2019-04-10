@@ -9,7 +9,11 @@ type RedisClient struct {
 	pool *Pool
 }
 
-func GetRedisClient(addr, pass string) *RedisClient {
+const (
+	DefaultMaxIdle = 80
+)
+
+func GetRedisClient(addr, pass string, maxIdle, maxActive int) *RedisClient {
 	//logs.Debugf("The addr is %s", addr)
 	if addr != "" {
 		//logs.Debugf("The addr is %s, password is [%s]", addr, strings.Repeat("*", len(pass)))
@@ -17,9 +21,15 @@ func GetRedisClient(addr, pass string) *RedisClient {
 		if pass != "" {
 			options = append(options, DialPassword(pass))
 		}
+		if maxIdle <= 0 {
+			maxIdle = DefaultMaxIdle
+		}
+		if maxActive < 0 {
+			maxActive = 0
+		}
 		pool := &Pool{
-			MaxIdle:   80,
-			MaxActive: 12000, // max number of connections
+			MaxIdle:   maxIdle,
+			MaxActive: maxActive, // max number of connections
 			Dial: func() (Conn, error) {
 				//c, err := Dial("tcp", "redis-10616.c15.us-east-1-4.ec2.cloud.redislabs.com:10616", DialPassword("NaQlEWBSz6ZQ8lXPJ329EUjZK12NvzaG"))
 				c, err := Dial("tcp", addr, options...)
