@@ -10,7 +10,8 @@ type RedisClient struct {
 }
 
 const (
-	DefaultMaxIdle = 80
+	DefaultMaxIdle     = 3
+	DefaultIdleTimeout = 240 * time.Second
 )
 
 func GetRedisClient(addr, pass string, maxIdle, maxActive int) *RedisClient {
@@ -28,15 +29,11 @@ func GetRedisClient(addr, pass string, maxIdle, maxActive int) *RedisClient {
 			maxActive = 0
 		}
 		pool := &Pool{
-			MaxIdle:   maxIdle,
-			MaxActive: maxActive, // max number of connections
+			MaxIdle:     maxIdle,
+			IdleTimeout: DefaultIdleTimeout,
+			MaxActive:   maxActive, // max number of connections
 			Dial: func() (Conn, error) {
-				//c, err := Dial("tcp", "redis-10616.c15.us-east-1-4.ec2.cloud.redislabs.com:10616", DialPassword("NaQlEWBSz6ZQ8lXPJ329EUjZK12NvzaG"))
-				c, err := Dial("tcp", addr, options...)
-				if err != nil {
-					panic(err.Error())
-				}
-				return c, err
+				return Dial("tcp", addr, options...)
 			},
 		}
 		return &RedisClient{pool: pool}
