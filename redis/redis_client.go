@@ -6,7 +6,8 @@ import (
 )
 
 type RedisClient struct {
-	pool *Pool
+	pool         *Pool
+	ErrorHandler func(err error)
 }
 
 const (
@@ -215,9 +216,15 @@ func (client *RedisClient) Do(commandName string, args ...interface{}) (reply in
 	if err != nil {
 		return 0, err
 	}
-	defer conn.Close()
+	defer func() {
+		_ = conn.Close()
+	}()
 
-	return conn.Do(commandName, args...)
+	result, err := conn.Do(commandName, args...)
+	if err != nil && client.ErrorHandler != nil {
+		client.ErrorHandler(err)
+	}
+	return result, err
 }
 
 func (client *RedisClient) DoWithTimeout(timeout time.Duration, cmd string, args ...interface{}) (interface{}, error) {
@@ -225,9 +232,15 @@ func (client *RedisClient) DoWithTimeout(timeout time.Duration, cmd string, args
 	if err != nil {
 		return 0, err
 	}
-	defer conn.Close()
+	defer func() {
+		_ = conn.Close()
+	}()
 
-	return DoWithTimeout(conn, timeout, cmd, args...)
+	result, err := DoWithTimeout(conn, timeout, cmd, args...)
+	if err != nil && client.ErrorHandler != nil {
+		client.ErrorHandler(err)
+	}
+	return result, err
 }
 
 func (client *RedisClient) Int64(commandName string, args ...interface{}) (int64, error) {
