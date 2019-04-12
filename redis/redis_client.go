@@ -15,13 +15,16 @@ const (
 	DefaultIdleTimeout = 240 * time.Second
 )
 
-func GetRedisClient(addr, pass string, maxIdle, maxActive int) *RedisClient {
+func GetRedisClient(addr, pass string, maxIdle, maxActive int, dialOptions ...DialOption) *RedisClient {
 	//logs.Debugf("The addr is %s", addr)
 	if addr != "" {
 		//logs.Debugf("The addr is %s, password is [%s]", addr, strings.Repeat("*", len(pass)))
 		var options []DialOption
 		if pass != "" {
 			options = append(options, DialPassword(pass))
+		}
+		if dialOptions != nil {
+			options = append(options, dialOptions...)
 		}
 		if maxIdle <= 0 {
 			maxIdle = DefaultMaxIdle
@@ -47,6 +50,11 @@ var ErrInternalError = errors.New("Internal error")
 
 const (
 	RedisStatusOK = "OK"
+)
+
+// Connection
+const (
+	Ping = "PING"
 )
 
 // Hash
@@ -241,6 +249,10 @@ func (client *RedisClient) DoWithTimeout(timeout time.Duration, cmd string, args
 		client.ErrorHandler(err)
 	}
 	return result, err
+}
+
+func (client *RedisClient) Ping() (string, error) {
+	return String(client.Do(Ping))
 }
 
 func (client *RedisClient) Int64(commandName string, args ...interface{}) (int64, error) {
