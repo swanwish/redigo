@@ -1251,6 +1251,10 @@ func (client RedisClient) GetInt64(key string) (int64, error) {
 	return client.Int64(CmdGet, key)
 }
 
+func (client RedisClient) GetFloat64(key string) (float64, error) {
+	return client.Float64(CmdGet, key)
+}
+
 func (client RedisClient) GetBit(key string, offset int64) (int64, error) {
 	return client.Int64(CmdGetBit, key, offset)
 }
