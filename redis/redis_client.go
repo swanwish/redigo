@@ -1315,6 +1315,10 @@ func (client RedisClient) SetInt64(key string, value int64) (string, error) {
 	return client.Set(key, value, 0)
 }
 
+func (client RedisClient) SetFloat64(key string, value float64) (string, error) {
+	return client.Set(key, value, 0)
+}
+
 func (client RedisClient) SetBit(key string, offset int64, value int) (int64, error) {
 	return client.Int64(CmdSetBit, key, offset, value)
 }
