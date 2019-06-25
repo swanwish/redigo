@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"encoding/json"
 	"errors"
 	"time"
 )
@@ -1247,6 +1248,14 @@ func (client RedisClient) Get(key string) (string, error) {
 	return client.String(CmdGet, key)
 }
 
+func (client RedisClient) GetFromJson(dest interface{}, key string) error {
+	jsonString, err := client.Get(key)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal([]byte(jsonString), dest)
+}
+
 func (client RedisClient) GetInt64(key string) (int64, error) {
 	return client.Int64(CmdGet, key)
 }
@@ -1309,6 +1318,14 @@ func (client RedisClient) Set(key string, value interface{}, expiration time.Dur
 		}
 	}
 	return client.String(CmdSet, args...)
+}
+
+func (client RedisClient) SetAsJson(key string, value interface{}, expiration time.Duration) (string, error) {
+	jsonValue, err := json.Marshal(value)
+	if err != nil {
+		return "", err
+	}
+	return client.Set(key, string(jsonValue), expiration)
 }
 
 func (client RedisClient) SetInt64(key string, value int64) (string, error) {
