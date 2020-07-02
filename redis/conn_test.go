@@ -16,6 +16,7 @@ package redis_test
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
@@ -38,10 +39,14 @@ type testConn struct {
 	writeDeadline time.Time
 }
 
-func (*testConn) Close() error                         { return nil }
-func (*testConn) LocalAddr() net.Addr                  { return nil }
-func (*testConn) RemoteAddr() net.Addr                 { return nil }
-func (c *testConn) SetDeadline(t time.Time) error      { c.readDeadline = t; c.writeDeadline = t; return nil }
+func (*testConn) Close() error         { return nil }
+func (*testConn) LocalAddr() net.Addr  { return nil }
+func (*testConn) RemoteAddr() net.Addr { return nil }
+func (c *testConn) SetDeadline(t time.Time) error {
+	c.readDeadline = t
+	c.writeDeadline = t
+	return nil
+}
 func (c *testConn) SetReadDeadline(t time.Time) error  { c.readDeadline = t; return nil }
 func (c *testConn) SetWriteDeadline(t time.Time) error { c.writeDeadline = t; return nil }
 
@@ -527,6 +532,37 @@ func TestReadTimeout(t *testing.T) {
 	}
 }
 
+func TestDialContextFunc(t *testing.T) {
+	var isPassed bool
+	f := func(ctx context.Context, network, addr string) (net.Conn, error) {
+		isPassed = true
+		return &testConn{}, nil
+	}
+
+	_, err := redis.DialContext(context.Background(), "", "", redis.DialContextFunc(f))
+	if err != nil {
+		t.Fatalf("DialContext returned %v", err)
+	}
+
+	if !isPassed {
+		t.Fatal("DialContextFunc not passed")
+	}
+}
+
+func TestDialContext_CanceledContext(t *testing.T) {
+	addr, err := redis.DefaultServerAddr()
+	if err != nil {
+		t.Fatalf("redis.DefaultServerAddr returned %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	if _, err = redis.DialContext(ctx, "tcp", addr); err == nil {
+		t.Fatalf("DialContext returned nil, expect error")
+	}
+}
+
 var dialErrors = []struct {
 	rawurl        string
 	expectedError string
@@ -552,6 +588,10 @@ var dialErrors = []struct {
 	{
 		"redis://localhost:6379/abc123",
 		"invalid database: abc123",
+	},
+	{
+		"redis:foo//localhost:6379",
+		"invalid redis URL, url is opaque: redis:foo//localhost:6379",
 	},
 }
 
@@ -596,7 +636,9 @@ var dialURLTests = []struct {
 	r           string
 	w           string
 }{
-	{"password", "redis://x:abc123@localhost", "+OK\r\n", "*2\r\n$4\r\nAUTH\r\n$6\r\nabc123\r\n"},
+	{"password", "redis://:abc123@localhost", "+OK\r\n", "*2\r\n$4\r\nAUTH\r\n$6\r\nabc123\r\n"},
+	{"username and password", "redis://user:password@localhost", "+OK\r\n", "*3\r\n$4\r\nAUTH\r\n$4\r\nuser\r\n$8\r\npassword\r\n"},
+	{"username", "redis://x:@localhost", "+OK\r\n", ""},
 	{"database 3", "redis://localhost/3", "+OK\r\n", "*2\r\n$6\r\nSELECT\r\n$1\r\n3\r\n"},
 	{"database 99", "redis://localhost/99", "+OK\r\n", "*2\r\n$6\r\nSELECT\r\n$2\r\n99\r\n"},
 	{"no database", "redis://localhost/", "+OK\r\n", ""},
@@ -671,6 +713,36 @@ func TestDialTLSSKipVerify(t *testing.T) {
 	checkPingPong(t, &buf, c)
 }
 
+func TestDialUseACL(t *testing.T) {
+	var buf bytes.Buffer
+	_, err := redis.Dial("tcp", "localhost:6379",
+		redis.DialUsername("user"),
+		redis.DialPassword("password"),
+		dialTestConn(pingResponse, &buf))
+	if err != nil {
+		t.Fatal("dial error:", err)
+	}
+	if err != nil {
+		t.Fatal("dial error:", err)
+	}
+	expected := "*3\r\n$4\r\nAUTH\r\n$4\r\nuser\r\n$8\r\npassword\r\n"
+	if w := buf.String(); w != expected {
+		t.Errorf("got %q, want %q", w, expected)
+	}
+}
+
+// Connect to an Redis instance using the Redis ACL system
+func ExampleDial_acl() {
+	c, err := redis.Dial("tcp", "localhost:6379",
+		redis.DialUsername("username"),
+		redis.DialPassword("password"),
+	)
+	if err != nil {
+		// handle error
+	}
+	defer c.Close()
+}
+
 func TestDialClientName(t *testing.T) {
 	var buf bytes.Buffer
 	_, err := redis.Dial("tcp", ":6379",
@@ -711,6 +783,16 @@ func TestDialClientName(t *testing.T) {
 // Connect to local instance of Redis running on the default port.
 func ExampleDial() {
 	c, err := redis.Dial("tcp", ":6379")
+	if err != nil {
+		// handle error
+	}
+	defer c.Close()
+}
+
+// Connect to local instance of Redis running on the default port using the provided context.
+func ExampleDialContext() {
+	ctx := context.Background()
+	c, err := redis.DialContext(ctx, "tcp", ":6379")
 	if err != nil {
 		// handle error
 	}

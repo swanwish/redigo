@@ -23,6 +23,10 @@ import (
 	"sync"
 )
 
+var (
+	scannerType = reflect.TypeOf((*Scanner)(nil)).Elem()
+)
+
 func ensureLen(d reflect.Value, n int) {
 	if n > d.Cap() {
 		d.Set(reflect.MakeSlice(d.Type(), n, n))
@@ -99,6 +103,8 @@ func convertAssignString(d reflect.Value, s string) (err error) {
 		} else {
 			err = cannotConvert(d, s)
 		}
+	case reflect.Ptr:
+		err = convertAssignString(d.Elem(), s)
 	default:
 		err = cannotConvert(d, s)
 	}
@@ -115,6 +121,26 @@ func convertAssignBulkString(d reflect.Value, s []byte) (err error) {
 		} else {
 			err = cannotConvert(d, s)
 		}
+	case reflect.Ptr:
+		if d.CanInterface() && d.CanSet() {
+			if s == nil {
+				if d.IsNil() {
+					return nil
+				}
+
+				d.Set(reflect.Zero(d.Type()))
+				return nil
+			}
+
+			if d.IsNil() {
+				d.Set(reflect.New(d.Type().Elem()))
+			}
+
+			if sc, ok := d.Interface().(Scanner); ok {
+				return sc.RedisScan(s)
+			}
+		}
+		err = convertAssignString(d, string(s))
 	default:
 		err = convertAssignString(d, string(s))
 	}
@@ -336,10 +362,14 @@ func compileStructSpec(t reflect.Type, depth map[string]int, index []int, ss *st
 		case f.PkgPath != "" && !f.Anonymous:
 			// Ignore unexported fields.
 		case f.Anonymous:
-			// TODO: Handle pointers. Requires change to decoder and
-			// protection against infinite recursion.
-			if f.Type.Kind() == reflect.Struct {
+			switch f.Type.Kind() {
+			case reflect.Struct:
 				compileStructSpec(f.Type, depth, append(index, i), ss)
+			case reflect.Ptr:
+				// TODO(steve): Protect against infinite recursion.
+				if f.Type.Elem().Kind() == reflect.Struct {
+					compileStructSpec(f.Type.Elem(), depth, append(index, i), ss)
+				}
 			}
 		default:
 			fs := &fieldSpec{name: f.Name}
@@ -474,9 +504,13 @@ var (
 	errScanSliceValue = errors.New("redigo.ScanSlice: dest must be non-nil pointer to a struct")
 )
 
-// ScanSlice scans src to the slice pointed to by dest. The elements the dest
-// slice must be integer, float, boolean, string, struct or pointer to struct
-// values.
+// ScanSlice scans src to the slice pointed to by dest.
+//
+// If the target is a slice of types which implement Scanner then the custom
+// RedisScan method is used otherwise the following rules apply:
+//
+// The elements in the dest slice must be integer, float, boolean, string, struct
+// or pointer to struct values.
 //
 // Struct fields must be integer, float, boolean or string values. All struct
 // fields are used unless a subset is specified using fieldNames.
@@ -492,12 +526,13 @@ func ScanSlice(src []interface{}, dest interface{}, fieldNames ...string) error 
 
 	isPtr := false
 	t := d.Type().Elem()
+	st := t
 	if t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Struct {
 		isPtr = true
 		t = t.Elem()
 	}
 
-	if t.Kind() != reflect.Struct {
+	if t.Kind() != reflect.Struct || st.Implements(scannerType) {
 		ensureLen(d, len(src))
 		for i, s := range src {
 			if s == nil {
@@ -624,7 +659,15 @@ func flattenStruct(args Args, v reflect.Value) Args {
 				continue
 			}
 		}
-		args = append(args, fs.name, fv.Interface())
+		if arg, ok := fv.Interface().(Argument); ok {
+			args = append(args, fs.name, arg.RedisArg())
+		} else if fv.Kind() == reflect.Ptr {
+			if !fv.IsNil() {
+				args = append(args, fs.name, fv.Elem().Interface())
+			}
+		} else {
+			args = append(args, fs.name, fv.Interface())
+		}
 	}
 	return args
 }
