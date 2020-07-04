@@ -26,7 +26,7 @@ const (
 )
 
 func getClient() *RedisClient {
-	return GetRedisClient(addr, pass)
+	return GetRedisClient(addr, pass, 0, 0)
 }
 
 func isArraysEqual(array1, array2 []string) bool {

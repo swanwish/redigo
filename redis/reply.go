@@ -24,6 +24,7 @@ import (
 // ErrNil indicates that a reply value is nil.
 var ErrNil = errors.New("redigo: nil returned")
 var ErrInvalidReply = errors.New("redigo: invalid reply")
+var ErrInvalidKeyArgsPair = errors.New("redigo: invalid key args pair")
 
 // Int is a helper that converts a command reply to an integer. If err is not
 // equal to nil, then Int returns 0, err. Otherwise, Int converts the

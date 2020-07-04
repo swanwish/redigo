@@ -185,6 +185,15 @@ const (
 	CmdScan      = "SCAN"
 )
 
+// Transactions
+const (
+	CmdDiscard = "DISCARD"
+	CmdExec    = "EXEC"
+	CmdMulti   = "MULTI"
+	CmdUnwatch = "UNWATCH"
+	CmdWatch   = "WATCH"
+)
+
 const (
 	ParamXX         = "XX"
 	ParamNX         = "NX"
@@ -208,7 +217,7 @@ const (
 	ParamCount      = "COUNT"
 )
 
-func (client *RedisClient) getConn() (Conn, error) {
+func (client *RedisClient) GetConn() (Conn, error) {
 	if client == nil {
 		//logs.Errorf("The client is nil")
 		return nil, ErrInternalError
@@ -221,7 +230,7 @@ func (client *RedisClient) getConn() (Conn, error) {
 }
 
 func (client *RedisClient) Do(commandName string, args ...interface{}) (reply interface{}, err error) {
-	conn, err := client.getConn()
+	conn, err := client.GetConn()
 	if err != nil {
 		return 0, err
 	}
@@ -237,7 +246,7 @@ func (client *RedisClient) Do(commandName string, args ...interface{}) (reply in
 }
 
 func (client *RedisClient) DoWithTimeout(timeout time.Duration, cmd string, args ...interface{}) (interface{}, error) {
-	conn, err := client.getConn()
+	conn, err := client.GetConn()
 	if err != nil {
 		return 0, err
 	}
@@ -1344,16 +1353,21 @@ func (client RedisClient) SetBit(key string, offset int64, value int) (int64, er
 //
 // Zero expiration means the key has no expiration time.
 func (client RedisClient) SetNX(key string, value interface{}, expiration time.Duration) (bool, error) {
+	var (
+		result string
+		err    error
+	)
 	if expiration == 0 {
 		// Use old `SETNX` to support old Redis versions.
-		return client.Bool(CmdSetNX, key, value)
+		result, err = client.String(CmdSetNX, key, value)
 	} else {
 		if usePrecise(expiration) {
-			return client.Bool(CmdSet, key, value, ParamPX, formatMs(expiration), ParamNX)
+			result, err = client.String(CmdSet, key, value, ParamPX, formatMs(expiration), ParamNX)
 		} else {
-			return client.Bool(CmdSet, key, value, ParamEX, formatSec(expiration), ParamNX)
+			result, err = client.String(CmdSet, key, value, ParamEX, formatSec(expiration), ParamNX)
 		}
 	}
+	return result == RedisStatusOK, err
 }
 
 // Redis `SET key value [expiration] XX` command.
@@ -1381,4 +1395,24 @@ func (client RedisClient) StrLen(key string) (int64, error) {
 
 func (client RedisClient) ActiveCount() int {
 	return client.pool.ActiveCount()
+}
+
+func (client RedisClient) Eval(scriptText string, keysAndArgs ...interface{}) (interface{}, error) {
+	if len(keysAndArgs)%2 != 0 {
+		return nil, ErrInvalidKeyArgsPair
+	}
+	script := NewScript(len(keysAndArgs)/2, scriptText)
+	conn, err := client.GetConn()
+	if err != nil {
+		return 0, err
+	}
+	defer func() {
+		_ = conn.Close()
+	}()
+
+	result, err := script.Do(conn, keysAndArgs...)
+	if err != nil && client.ErrorHandler != nil {
+		client.ErrorHandler(err)
+	}
+	return result, err
 }
